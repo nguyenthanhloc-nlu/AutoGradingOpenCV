@@ -17,14 +17,22 @@ import org.opencv.core.Size;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
-import com.test.grading.PositonSquare;
 import com.test.process.MatProcess;
+import com.test.process.PositonSquare;
 import com.test.process.RectCompareNoise;
 
 public class Paper {
 
 	private static double totalArea;
-	private static int thresh = 100;
+	private int thresh = 100;
+
+	public int getThresh() {
+		return thresh;
+	}
+
+	public void setThresh(int thresh) {
+		this.thresh = thresh;
+	}
 
 	public Paper() {
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
@@ -35,9 +43,6 @@ public class Paper {
 		System.out.println("Paper: getPaper");
 
 		Mat result = new Mat();
-
-		Mat gray = MatProcess.toColorGray(src);
-		Mat thresh = MatProcess.toThreshBinary(gray, 100);
 
 		return result;
 	}
@@ -54,11 +59,9 @@ public class Paper {
 
 		Mat gray = MatProcess.toColorGray(newSize);
 		Mat thresh_image = MatProcess.toThreshBinary(gray, 110);
-//		Imgcodecs.imwrite("result_test4.jpg", thresh_image);
 
 		List<MatOfPoint> contours = MatProcess.getContour(thresh_image);
 
-		// lọc phần tử gây nhiễu
 		Set<Rect> rects = new TreeSet<Rect>(RectCompareNoise.RECT_COMPARE);
 
 		for (int i = 0; i < contours.size(); i++) {
@@ -76,16 +79,15 @@ public class Paper {
 				Imgproc.approxPolyDP(dst, approxCurve, peri * 0.05, true);
 
 				if (approxCurve.toArray().length == 4)
+
 					rects.add(rect);
 			}
 		}
 
-		result = filterForId(rects);
+		result = filterRects(rects);
 		return result;
 	}
 
-	
-	
 	public List<Rect> getPositionPaperForId_Exam(Mat src) {
 
 		System.out.println("Paper: getPositionPaperForId_Exam");
@@ -123,7 +125,7 @@ public class Paper {
 
 	public static List<Rect> filterForId_Exam(Set<Rect> rects) {
 
-		System.out.println("Paper: filterForId_Exam");
+//		System.out.println("Paper: filterForId_Exam");
 
 		if (rects.size() == 4) {
 			ArrayList<Rect> list = new ArrayList<Rect>();
@@ -184,73 +186,49 @@ public class Paper {
 										&& cheo1 > 600) {
 									return returnList;
 								}
-
 							}
-
 						}
-
 					}
 				}
-
-//				System.out.println("paper2: test2.stream().collect(Collectors.toList()) "
-//						+ test2.stream().collect(Collectors.toList()));
 				return test2.stream().collect(Collectors.toList());
 			}
 			return rs;
 		}
 	}
 
-
-
-	public Mat getRectIn4RectForResult2(List<Rect> listRect, Mat src) {
+	public Mat getRectIn4RectForResult(List<Rect> listRect, Mat src) {
 
 		System.out.println("Paper: getRectIn4RectForResult2");
 
 		Mat m = new Mat();
-//		Imgproc.resize(src, m, new Size(1240,1755));
 		Imgproc.resize(src, m, new Size(src.width() / 2, src.height() / 2));
 
-		totalArea = src.width() / 2 * src.height() / 2;
+		Imgcodecs.imwrite("src/img/paper-m.jpg", m);
 
-//		System.out.println(totalArea);
+		totalArea = src.width() / 2 * src.height() / 2;
 
 		for (int i = 0; i < listRect.size(); i++) {
 			Imgproc.rectangle(m, listRect.get(i), new Scalar(0, 255, 0));
 		}
 
-//		System.out.println("paper listRect: " + listRect);
+		System.out.println("paper listRect: " + listRect);
 
-		// tinh góc
 		double angle = MatProcess.computeAngleRotate(new Point(listRect.get(0).x, listRect.get(0).y),
 				new Point(listRect.get(1).x, listRect.get(1).y), new Point(listRect.get(2).x, listRect.get(2).y));
 
-//		System.out.println("paper :  " + angle);
-
-		// rotate
 		Imgcodecs.imwrite("src/img/paper-table-before-romate.jpg", m);
 
 		Mat table = MatProcess.rotate(m, angle);
 		Imgcodecs.imwrite("src/img/paper-table-after-romate.jpg", table);
 
-//		Set<Rect> setRect = new 
-
 		int xTopLeft = listRect.get(0).x;
 		int yTopLeft = listRect.get(0).y;
-
-//		System.out.println("paper: xTopLeft : " + xTopLeft);
-//		System.out.println("paper: yTopLeft : " + yTopLeft);
 
 		int xTopRight = listRect.get(2).x;
 		int yTopRight = listRect.get(2).y;
 
-//		System.out.println("paper: xTopRight : " + xTopRight);
-//		System.out.println("paper: yTopRight : " + yTopRight);
-
 		int xBottomLeft = listRect.get(1).x;
 		int yBottomLeft = listRect.get(1).y;
-
-//		System.out.println("paper: xBottomLeft : " + xBottomLeft);
-//		System.out.println("paper: yBottomLeft : " + yBottomLeft);
 
 		int xi = ((xTopRight - xTopLeft) / 2) + xTopLeft;
 		int yi = ((yBottomLeft - yTopLeft) / 2) + yTopLeft;
@@ -267,15 +245,6 @@ public class Paper {
 		int yAfterRomate = (int) newPointTopLeft.y;
 		int wAfterRomate = (int) ((newPointTopRight.x - newPointTopLeft.x));
 		int hAfterRomate = (int) ((newPointBottomLeft.y - newPointTopLeft.y) + 40);
-
-//		int h_drop_temp = hAfterRomate + 50;
-//		System.out.println("h_drop_temp: " + h_drop_temp);
-//		int h_drop = ((h_drop_temp + yBottomLeft) > table.height()) ? table.height() - h_drop_temp : h_drop_temp;
-
-//		System.out.println("xAfterRomate: " + xAfterRomate);
-//		System.out.println("yAfterRomate: " + yAfterRomate);
-//		System.out.println("wAfterRomate: " + wAfterRomate);
-//		System.out.println("hAfterRomate: " + hAfterRomate);
 
 		Mat drop_Mat = new Mat(table, new Rect(xAfterRomate, yAfterRomate, wAfterRomate, hAfterRomate));
 
@@ -294,14 +263,11 @@ public class Paper {
 		Imgproc.resize(src, m, new Size(src.width() / 2, src.height() / 2));
 		totalArea = src.width() / 2 * src.height() / 2;
 
-//		System.out.println("Diện tích: " + src.width() / 2 + " x " + src.height() / 2 + " = " + totalArea);
-
 		Mat gray = new Mat();
 		Mat thresh_image = new Mat();
 
 		gray = MatProcess.toColorGray(m);
 		thresh_image = MatProcess.toThreshBinary(gray, 115);
-//		Imgcodecs.imwrite("src/img/result_test4.jpg", thresh_image);
 
 		List<MatOfPoint> contours = MatProcess.getContour(thresh_image);
 
@@ -325,8 +291,7 @@ public class Paper {
 					rects.add(rect);
 			}
 		}
-//		
-		List<Rect> rs = filterForId(rects);
+		List<Rect> rs = filterRects(rects);
 		for (int i = 0; i < rs.size(); i++) {
 			Imgproc.rectangle(m, rs.get(i), new Scalar(0, 255, 0));
 		}
@@ -334,8 +299,6 @@ public class Paper {
 		Mat rectInFourRect = new Mat();
 		Rect[] d = new Rect[4];
 		rs.toArray(d);
-//		System.out.println("list: " + rs);
-		// width, height Mat inner 4 square
 		int width = d[2].x - d[0].x;
 		int height = d[1].y - d[0].y + d[1].height;
 		// hình chủ nhật trong bốn hình vuông
@@ -345,17 +308,13 @@ public class Paper {
 		double angle = MatProcess.computeAngleRotate(p1, p2, p3);
 //		System.out.println("Gốc xoay: " + angle);
 		Mat imgRomated = MatProcess.rotate(m, angle);
-//		Imgcodecs.imwrite("src/img/xoay-anh.jpg", imgRomated);
-
-//		int newPointX = (int) newPoint0.x;
-//		int newPointY = (int) newPoint0.y;
 
 		rectInFourRect = new Mat(imgRomated, new Rect(d[0].x, d[0].y, width, height));
 		return rectInFourRect;
 
 	}
 
-	public static List<Rect> filterForId(Set<Rect> rects) {
+	public static List<Rect> filterRects(Set<Rect> rects) {
 
 		System.out.println("Paper: " + "filterForId");
 
@@ -373,8 +332,6 @@ public class Paper {
 				}
 			}
 		}
-//		System.out.println("test: " + test);
-//		System.out.println("data: " + data);
 
 		rs = test.stream().collect(Collectors.toList());
 //		List<Rect> rs2 = new ArrayList<Rect>();
@@ -450,18 +407,14 @@ public class Paper {
 									test2.add(rs.get(l));
 								}
 							}
-
 						}
-
 					}
-
 				}
 			}
 
 			System.out.println(test2.stream().collect(Collectors.toList()));
 			return test2.stream().collect(Collectors.toList());
 		}
-//		System.out.println(rs);
 		return rs;
 	}
 

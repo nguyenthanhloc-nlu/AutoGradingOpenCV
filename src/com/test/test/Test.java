@@ -21,7 +21,7 @@ public class Test {
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 
 //		String filePath = "src/rs-dap-an-.jpg";
-		String filePath = "src/img/86.jpg";
+		String filePath = "src/img/28.jpg";
 		Mat src = Imgcodecs.imread(filePath);
 		
 		Mat idExam = new Mat();

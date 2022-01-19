@@ -64,7 +64,7 @@ public class GetAnswers {
 		Mat copy = new Mat();
 		src.copyTo(copy);
 		Set<Rect> rects = new TreeSet<Rect>(RectCompareNoise.RECT_COMPARE_SIX_SQUARE);
-		for (int thresh_ = 140; thresh_ >90; thresh_-=4) {
+		for (int thresh_ = 150; thresh_ >90; thresh_-=4) {
 			
 			Mat gray = MatProcess.toColorGray(src);
 			Mat thresh = MatProcess.toThreshBinary(gray, thresh_);
